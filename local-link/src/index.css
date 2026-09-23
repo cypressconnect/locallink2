@@ -1,0 +1,98 @@
+@import "tailwindcss";
+
+/* The font used by the original Local Link design. */
+@font-face {
+  font-family: "Epilogue";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("/assets/epilogue.ttf") format("truetype");
+}
+
+/* Design tokens taken from the original Local Link stylesheet. */
+@theme {
+  --font-sans: "Epilogue", sans-serif;
+
+  --color-accent: #5f9ea0;          /* cadet blue - headings, links, primary button */
+  --color-ink: rgb(45 45 45);       /* body text */
+  --color-muted: rgb(243 243 243);  /* cards and input fields */
+  --color-coral: rgb(255 98 80);    /* link hover */
+
+  /* Fluid type scale */
+  --text-fluid-0: clamp(0.75rem, 2vw, 1rem);
+  --text-fluid-1: clamp(1rem, 4vw, 1.5rem);
+  --text-fluid-2: clamp(1.5rem, 6vw, 2.5rem);
+  --text-fluid-3: clamp(2rem, 9vw, 3.5rem);
+
+  /* Fluid spacing scale */
+  --spacing-fluid-2: clamp(1rem, 2vw, 1.5rem);
+  --spacing-fluid-3: clamp(1.5rem, 3vw, 2rem);
+  --spacing-fluid-4: clamp(2rem, 4vw, 3rem);
+  --spacing-fluid-5: clamp(4rem, 5vw, 5rem);
+  --spacing-fluid-6: clamp(5rem, 7vw, 7.5rem);
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-white text-ink font-sans;
+    font-size: 17px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  p {
+    margin: 0;
+  }
+}
+
+@layer components {
+  /* Centred 1024px column with the fluid side padding used site-wide. */
+  .shell {
+    @apply mx-auto w-full max-w-[1024px] px-fluid-3;
+  }
+
+  /* Vertical rhythm for a page section. */
+  .section {
+    @apply pt-fluid-5 pb-fluid-6;
+  }
+
+  .section-heading {
+    @apply text-fluid-2 leading-[1.25] font-bold;
+  }
+
+  .nav-link {
+    @apply text-accent no-underline transition-colors duration-200 hover:text-coral;
+  }
+
+  /* NavLink marks the current page with .active. */
+  .nav-link.active {
+    @apply underline;
+  }
+
+  /* Filled accent button, square corners and a hairline border. */
+  .btn {
+    @apply inline-block min-w-[200px] border border-black bg-accent px-5 py-4
+           text-center text-white no-underline transition-opacity duration-200
+           hover:opacity-90;
+  }
+
+  /* Dark variant used for form submits. */
+  .btn-dark {
+    @apply inline-block min-w-[200px] border border-ink bg-ink px-5 py-4
+           text-center text-white no-underline transition-opacity duration-200
+           hover:opacity-90;
+  }
+
+  .field {
+    @apply w-full border-0 bg-muted px-5 py-4 outline-none
+           focus-visible:outline focus-visible:outline-5 focus-visible:outline-coral;
+  }
+
+  .card {
+    @apply bg-muted p-fluid-4;
+  }
+}
