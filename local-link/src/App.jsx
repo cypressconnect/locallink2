@@ -5,6 +5,7 @@ import Footer from './components/Footer.jsx'
 import Home from './pages/Home.jsx'
 import Login from './pages/Login.jsx'
 import Marketplace from './pages/Marketplace.jsx'
+import Topics from './pages/Topics.jsx'
 import ComingSoon from './pages/ComingSoon.jsx'
 
 export default function App() {
@@ -16,9 +17,9 @@ export default function App() {
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
           <Route path="/marketplace" element={<Marketplace />} />
+          <Route path="/topics" element={<Topics />} />
           {/* Built in a later stage of the project. */}
           <Route path="/contact" element={<ComingSoon title="Contact" />} />
-          <Route path="/topics" element={<ComingSoon title="Topics" />} />
           <Route path="/lead/:id" element={<ComingSoon title="Send a Lead" />} />
           <Route path="*" element={<ComingSoon title="Page not found" />} />
         </Routes>

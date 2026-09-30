@@ -15,6 +15,9 @@ export default function Navbar() {
         <NavLink to="/marketplace" className="nav-link">
           Online Marketplace
         </NavLink>
+        <NavLink to="/topics" className="nav-link">
+          Topics
+        </NavLink>
         <NavLink to="/contact" className="nav-link">
           Contact
         </NavLink>

@@ -78,16 +78,20 @@ export default function Home() {
         <div className="shell flex flex-col gap-fluid-4">
           <h2 className="section-heading text-center text-accent">Popular Topics</h2>
           <div className="grid gap-fluid-2 sm:grid-cols-3">
-            {topics.map((topic) => (
-              <div
+            {topics.slice(0, 3).map((topic) => (
+              <Link
                 key={topic.id}
-                className="flex flex-col items-center justify-between gap-fluid-2 text-center"
+                to={`/marketplace?topic=${encodeURIComponent(topic.name)}`}
+                className="flex flex-col items-center justify-between gap-fluid-2 text-center no-underline"
               >
                 <img src={topic.icon} alt="" width="125" height="125" />
                 <h3 className="text-fluid-1 font-bold text-accent">{topic.name}</h3>
-              </div>
+              </Link>
             ))}
           </div>
+          <Link to="/topics" className="btn self-center">
+            See all topics
+          </Link>
         </div>
       </section>
 

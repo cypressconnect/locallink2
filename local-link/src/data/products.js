@@ -1,10 +1,59 @@
 // Topics double as the marketplace filter and as the subscription list
-// businesses sign up to.
+// businesses sign up to. Every topic name here also appears on a product.
 export const topics = [
-  { id: 'bakery', name: 'Bakery', icon: '/assets/topic-1.svg' },
-  { id: 'tutoring', name: 'Tutoring', icon: '/assets/topic-2.svg' },
-  { id: 'gardening', name: 'Gardening', icon: '/assets/topic-3.svg' },
+  {
+    id: 'bakery',
+    name: 'Bakery',
+    icon: '/assets/topic-1.svg',
+    image: '/assets/product-2.png',
+    blurb: 'Cakes, bread and party orders baked by students near you.',
+    asks: 'What would you like baked, and when do you need it?',
+  },
+  {
+    id: 'tutoring',
+    name: 'Tutoring',
+    icon: '/assets/topic-2.svg',
+    image: '/assets/product-5.png',
+    blurb: 'Maths, English and exam help from students a year or two ahead.',
+    asks: 'Which subject and year group do you need help with?',
+  },
+  {
+    id: 'gardening',
+    name: 'Gardening',
+    icon: '/assets/topic-3.svg',
+    image: '/assets/product-3.png',
+    blurb: 'Mowing, weeding and planters for your garden.',
+    asks: 'What does your garden need doing?',
+  },
+  {
+    id: 'art',
+    name: 'Art',
+    icon: '/assets/topic-4.svg',
+    image: '/assets/product-1.png',
+    blurb: 'Lessons, commissions and prints from student artists.',
+    asks: 'What kind of art or lesson are you after?',
+  },
+  {
+    id: 'homemade-goods',
+    name: 'Homemade Goods',
+    icon: '/assets/topic-5.svg',
+    image: '/assets/product-6.png',
+    blurb: 'Jewellery, candles, drinks and other things made by hand.',
+    asks: 'What sort of handmade item are you looking for?',
+  },
+  {
+    id: 'services',
+    name: 'Services',
+    icon: '/assets/topic-6.svg',
+    image: '/assets/product-4.png',
+    blurb: 'Babysitting, dog walking, car washing and odd jobs.',
+    asks: 'Which service do you need, and how often?',
+  },
 ]
+
+export function findTopic(id) {
+  return topics.find((topic) => topic.id === id)
+}
 
 export const products = [
   {
@@ -119,3 +168,7 @@ export const products = [
 
 // Every topic that appears on a product, for the marketplace filter bar.
 export const productTopics = [...new Set(products.map((p) => p.topic))].sort()
+
+export function productsInTopic(topicName) {
+  return products.filter((product) => product.topic === topicName)
+}
