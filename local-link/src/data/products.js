@@ -1,13 +1,12 @@
-// Topics double as the marketplace filter and as the subscription list
-// businesses sign up to. Every topic name here also appears on a product.
+// Topics are the categories customers browse on the topics page and in the
+// marketplace filter. Every business belongs to exactly one topic.
 export const topics = [
   {
-    id: 'bakery',
-    name: 'Bakery',
+    id: 'baked-goods',
+    name: 'Baked Goods',
     icon: '/assets/topic-1.svg',
     image: '/assets/product-2.png',
     blurb: 'Cakes, bread and party orders baked by students near you.',
-    asks: 'What would you like baked, and when do you need it?',
   },
   {
     id: 'tutoring',
@@ -15,7 +14,6 @@ export const topics = [
     icon: '/assets/topic-2.svg',
     image: '/assets/product-5.png',
     blurb: 'Maths, English and exam help from students a year or two ahead.',
-    asks: 'Which subject and year group do you need help with?',
   },
   {
     id: 'gardening',
@@ -23,7 +21,6 @@ export const topics = [
     icon: '/assets/topic-3.svg',
     image: '/assets/product-3.png',
     blurb: 'Mowing, weeding and planters for your garden.',
-    asks: 'What does your garden need doing?',
   },
   {
     id: 'art',
@@ -31,7 +28,6 @@ export const topics = [
     icon: '/assets/topic-4.svg',
     image: '/assets/product-1.png',
     blurb: 'Lessons, commissions and prints from student artists.',
-    asks: 'What kind of art or lesson are you after?',
   },
   {
     id: 'homemade-goods',
@@ -39,7 +35,6 @@ export const topics = [
     icon: '/assets/topic-5.svg',
     image: '/assets/product-6.png',
     blurb: 'Jewellery, candles, drinks and other things made by hand.',
-    asks: 'What sort of handmade item are you looking for?',
   },
   {
     id: 'services',
@@ -47,7 +42,6 @@ export const topics = [
     icon: '/assets/topic-6.svg',
     image: '/assets/product-4.png',
     blurb: 'Babysitting, dog walking, car washing and odd jobs.',
-    asks: 'Which service do you need, and how often?',
   },
 ]
 
@@ -55,120 +49,152 @@ export function findTopic(id) {
   return topics.find((topic) => topic.id === id)
 }
 
-export const products = [
-  {
-    id: 1,
-    name: 'Painting Classes',
-    business: "Amy's Artistic Classes",
-    topic: 'Art',
-    price: '$25 / lesson',
-    image: '/assets/product-1.png',
-    verified: true,
-  },
-  {
-    id: 2,
-    name: 'Fresh Orange Juice',
-    business: "Rayvan's Kitchen",
-    topic: 'Homemade Goods',
-    price: '$4 / bottle',
-    image: '/assets/product-2.png',
-    verified: true,
-  },
-  {
-    id: 3,
-    name: 'Bridgeland Newspaper',
-    business: "Tony's Gazette",
-    topic: 'Homemade Goods',
-    price: '$2 / issue',
-    image: '/assets/product-3.png',
-    verified: false,
-  },
-  {
-    id: 4,
-    name: 'Bible Classes',
-    business: "Gabriel's Sunday School",
-    topic: 'Tutoring',
-    price: 'Free',
-    image: '/assets/product-4.png',
-    verified: true,
-  },
-  {
-    id: 5,
-    name: 'English Tutoring',
-    business: "Jay's Tutoring Zone",
-    topic: 'Tutoring',
-    price: '$20 / hour',
-    image: '/assets/product-5.png',
-    verified: true,
-  },
-  {
-    id: 6,
-    name: 'Babysitting',
-    business: "Natasha's Babysitting",
-    topic: 'Services',
-    price: '$15 / hour',
-    image: '/assets/product-6.png',
-    verified: false,
-  },
-  {
-    id: 7,
-    name: 'Sourdough Loaves',
-    business: "Bobby's Bakery",
-    topic: 'Bakery',
-    price: '$8 / loaf',
-    image: '/assets/product-2.png',
-    verified: true,
-  },
-  {
-    id: 8,
-    name: 'Math Tutoring',
-    business: 'Priya Study Hall',
-    topic: 'Tutoring',
-    price: '$22 / hour',
-    image: '/assets/product-5.png',
-    verified: true,
-  },
-  {
-    id: 9,
-    name: 'Garden Planters',
-    business: "Leo's Woodshop",
-    topic: 'Gardening',
-    price: '$30 each',
-    image: '/assets/product-1.png',
-    verified: false,
-  },
-  {
-    id: 10,
-    name: 'Lawn Mowing',
-    business: 'Green Street Crew',
-    topic: 'Gardening',
-    price: '$25 / visit',
-    image: '/assets/product-3.png',
-    verified: true,
-  },
-  {
-    id: 11,
-    name: 'Beaded Bracelets',
-    business: "Mia's Craft Corner",
-    topic: 'Homemade Goods',
-    price: '$6 each',
-    image: '/assets/product-6.png',
-    verified: true,
-  },
-  {
-    id: 12,
-    name: 'Birthday Cupcakes',
-    business: 'Sweet Sixteen Bakes',
-    topic: 'Bakery',
-    price: '$18 / dozen',
-    image: '/assets/product-4.png',
-    verified: false,
-  },
+// Pictures a business can pick from when it adds a product.
+export const productImages = [
+  '/assets/product-1.png',
+  '/assets/product-2.png',
+  '/assets/product-3.png',
+  '/assets/product-4.png',
+  '/assets/product-5.png',
+  '/assets/product-6.png',
 ]
 
-// Every topic that appears on a product, for the marketplace filter bar.
-export const productTopics = [...new Set(products.map((p) => p.topic))].sort()
+// Account that owns a couple of the seed businesses, so the business homepage
+// (including switching between businesses) can be demoed on a fresh browser.
+export const DEMO_BUSINESS_EMAIL = 'demo@locallink.com'
 
-export function productsInTopic(topicName) {
-  return products.filter((product) => product.topic === topicName)
-}
+// Starting data for businessStore.js. Saved changes are layered on top.
+export const seedBusinesses = [
+  {
+    id: 'amys-artistic-classes',
+    owner: '',
+    name: "Amy's Artistic Classes",
+    topicId: 'art',
+    verified: true,
+    description: 'Small-group painting lessons for beginners, held on weekends at the community centre.',
+    products: [
+      { id: '1', name: 'Painting Classes', price: '$25 / lesson', image: '/assets/product-1.png' },
+    ],
+  },
+  {
+    id: 'rayvans-kitchen',
+    owner: '',
+    name: "Rayvan's Kitchen",
+    topicId: 'homemade-goods',
+    verified: true,
+    description: 'Fresh juices squeezed every morning and delivered around the neighbourhood.',
+    products: [
+      { id: '2', name: 'Fresh Orange Juice', price: '$4 / bottle', image: '/assets/product-2.png' },
+    ],
+  },
+  {
+    id: 'tonys-gazette',
+    owner: '',
+    name: "Tony's Gazette",
+    topicId: 'homemade-goods',
+    verified: false,
+    description: 'A weekly newspaper covering local events, sport and school news in Bridgeland.',
+    products: [
+      { id: '3', name: 'Bridgeland Newspaper', price: '$2 / issue', image: '/assets/product-3.png' },
+    ],
+  },
+  {
+    id: 'gabriels-sunday-school',
+    owner: '',
+    name: "Gabriel's Sunday School",
+    topicId: 'tutoring',
+    verified: true,
+    description: 'Friendly Bible classes for younger children every Sunday afternoon.',
+    products: [
+      { id: '4', name: 'Bible Classes', price: 'Free', image: '/assets/product-4.png' },
+    ],
+  },
+  {
+    id: 'jays-tutoring-zone',
+    owner: '',
+    name: "Jay's Tutoring Zone",
+    topicId: 'tutoring',
+    verified: true,
+    description: 'English essay and reading help for years 7 to 10, online or in person.',
+    products: [
+      { id: '5', name: 'English Tutoring', price: '$20 / hour', image: '/assets/product-5.png' },
+    ],
+  },
+  {
+    id: 'natashas-babysitting',
+    owner: '',
+    name: "Natasha's Babysitting",
+    topicId: 'services',
+    verified: false,
+    description: 'First-aid trained babysitter available on weekday evenings and weekends.',
+    products: [
+      { id: '6', name: 'Babysitting', price: '$15 / hour', image: '/assets/product-6.png' },
+    ],
+  },
+  {
+    id: 'bobbys-bakery',
+    owner: DEMO_BUSINESS_EMAIL,
+    name: "Bobby's Bakery",
+    topicId: 'baked-goods',
+    verified: true,
+    description: 'Slow-proved sourdough and seasonal bakes, ready for pickup every Saturday.',
+    products: [
+      { id: '7', name: 'Sourdough Loaves', price: '$8 / loaf', image: '/assets/product-2.png' },
+    ],
+  },
+  {
+    id: 'priya-study-hall',
+    owner: '',
+    name: 'Priya Study Hall',
+    topicId: 'tutoring',
+    verified: true,
+    description: 'Maths tutoring from GCSE to A-level, with past-paper practice every session.',
+    products: [
+      { id: '8', name: 'Math Tutoring', price: '$22 / hour', image: '/assets/product-5.png' },
+    ],
+  },
+  {
+    id: 'leos-woodshop',
+    owner: '',
+    name: "Leo's Woodshop",
+    topicId: 'gardening',
+    verified: false,
+    description: 'Hand-built cedar planters made to order in any size.',
+    products: [
+      { id: '9', name: 'Garden Planters', price: '$30 each', image: '/assets/product-1.png' },
+    ],
+  },
+  {
+    id: 'green-street-crew',
+    owner: '',
+    name: 'Green Street Crew',
+    topicId: 'gardening',
+    verified: true,
+    description: 'Three friends who mow, edge and tidy lawns all through spring and summer.',
+    products: [
+      { id: '10', name: 'Lawn Mowing', price: '$25 / visit', image: '/assets/product-3.png' },
+    ],
+  },
+  {
+    id: 'mias-craft-corner',
+    owner: '',
+    name: "Mia's Craft Corner",
+    topicId: 'homemade-goods',
+    verified: true,
+    description: 'Beaded bracelets and keychains in custom colours and names.',
+    products: [
+      { id: '11', name: 'Beaded Bracelets', price: '$6 each', image: '/assets/product-6.png' },
+    ],
+  },
+  {
+    id: 'sweet-sixteen-bakes',
+    owner: DEMO_BUSINESS_EMAIL,
+    name: 'Sweet Sixteen Bakes',
+    topicId: 'baked-goods',
+    verified: false,
+    description: 'Decorated cupcakes and birthday cakes for parties of any size.',
+    products: [
+      { id: '12', name: 'Birthday Cupcakes', price: '$18 / dozen', image: '/assets/product-4.png' },
+    ],
+  },
+]

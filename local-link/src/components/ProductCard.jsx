@@ -23,7 +23,7 @@ export default function ProductCard({ product, showLeadButton = false }) {
       </div>
 
       {showLeadButton && (
-        <Link to={`/lead/${product.id}`} className="btn min-w-0 w-full">
+        <Link to={`/lead/${product.businessId}`} className="btn min-w-0 w-full">
           Send Lead
         </Link>
       )}
@@ -32,7 +32,7 @@ export default function ProductCard({ product, showLeadButton = false }) {
 }
 
 // Businesses that have passed Local Link's verification checks.
-function VerifiedBadge() {
+export function VerifiedBadge() {
   return (
     <span
       title="This business has been verified by Local Link"

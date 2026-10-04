@@ -22,11 +22,15 @@ export default function Navbar() {
           Contact
         </NavLink>
 
+        {user?.accountType === 'business' && (
+          <NavLink to="/business" className="nav-link">
+            My Business
+          </NavLink>
+        )}
+
         {user ? (
           <>
-            <span className="text-fluid-0 text-ink/60">
-              {user.businessName || user.name}
-            </span>
+            <span className="text-fluid-0 text-ink/60">{user.name}</span>
             <button type="button" onClick={signOut} className="nav-link cursor-pointer">
               Log out
             </button>

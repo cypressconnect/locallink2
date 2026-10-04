@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
-import { products, topics } from '../data/products.js'
+import { topics } from '../data/products.js'
+import { listProducts, useBusinesses } from '../data/businessStore.js'
 import ProductCard from '../components/ProductCard.jsx'
 
 export default function Marketplace() {
@@ -8,6 +9,7 @@ export default function Marketplace() {
   const [params, setParams] = useSearchParams()
   const [query, setQuery] = useState('')
   const [verifiedOnly, setVerifiedOnly] = useState(false)
+  const { businesses } = useBusinesses()
 
   const topic = params.get('topic') ?? 'All'
 
@@ -22,7 +24,7 @@ export default function Marketplace() {
   const results = useMemo(() => {
     const search = query.trim().toLowerCase()
 
-    return products.filter((product) => {
+    return listProducts(businesses).filter((product) => {
       if (topic !== 'All' && product.topic !== topic) return false
       if (verifiedOnly && !product.verified) return false
       if (!search) return true
@@ -31,7 +33,7 @@ export default function Marketplace() {
         product.business.toLowerCase().includes(search)
       )
     })
-  }, [query, topic, verifiedOnly])
+  }, [businesses, query, topic, verifiedOnly])
 
   const current = topics.find((entry) => entry.name === topic)
 
@@ -87,8 +89,8 @@ export default function Marketplace() {
                 <p>{current.blurb}</p>
               </div>
             </div>
-            <Link to="/topics" className="btn shrink-0">
-              Join this topic
+            <Link to={`/topics?topic=${current.id}`} className="btn shrink-0">
+              See businesses
             </Link>
           </div>
         )}
@@ -107,7 +109,7 @@ export default function Marketplace() {
           <div className="flex flex-col items-start gap-fluid-2">
             <p>No products matched that search. Try a different topic or keyword.</p>
             <Link to="/topics" className="btn-dark">
-              Post what you need
+              Browse topics
             </Link>
           </div>
         )}
@@ -117,8 +119,8 @@ export default function Marketplace() {
           <h2 className="text-fluid-1 font-bold text-accent">Buying safely</h2>
           <p>
             A Verified badge means Local Link has checked the student&apos;s school email
-            and identity. Your contact details only reach a business when you send a lead
-            or join a topic, and you can pull them back at any time.
+            and identity. Your contact details only reach a business when you send it a
+            lead.
           </p>
         </div>
       </div>

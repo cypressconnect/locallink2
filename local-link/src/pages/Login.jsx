@@ -1,10 +1,32 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth.jsx'
+import { DEMO_BUSINESS_EMAIL, topics } from '../data/products.js'
+import { createBusiness } from '../data/businessStore.js'
+
+// Shown on the page so the site can be tried without signing up. The business
+// one owns two seed businesses, so switching between them can be demoed.
+const demoAccounts = [
+  {
+    accountType: 'customer',
+    label: 'Customer',
+    name: 'Demo Customer',
+    email: 'customer@locallink.com',
+    password: 'customer123',
+  },
+  {
+    accountType: 'business',
+    label: 'Student Business',
+    name: 'Bobby Chen',
+    email: DEMO_BUSINESS_EMAIL,
+    password: 'business123',
+  },
+]
 
 const emptyForm = {
   name: '',
   businessName: '',
+  topicId: topics[0].id,
   email: '',
   password: '',
   confirmPassword: '',
@@ -34,14 +56,29 @@ export default function Login() {
       return
     }
 
+    const demo = demoAccounts.find((account) => account.email === form.email)
+    if (demo && !isSignup && form.password !== demo.password) {
+      setError('That is not the password for this demo account.')
+      return
+    }
+
+    // A demo email always signs in as its own account type, whichever tab is picked.
+    const type = demo?.accountType ?? accountType
+
     setError('')
     signIn({
-      name: form.name || form.email,
+      name: demo?.name || form.name || form.email,
       email: form.email,
-      accountType,
-      businessName: isBusiness ? form.businessName : '',
+      accountType: type,
     })
-    navigate('/marketplace')
+
+    // A business signup starts with its first business already set up.
+    if (isSignup && isBusiness) {
+      createBusiness({ owner: form.email, name: form.businessName, topicId: form.topicId })
+    }
+
+    // Each account type lands on its own homepage.
+    navigate(type === 'business' ? '/business' : '/marketplace')
   }
 
   return (
@@ -95,6 +132,22 @@ export default function Login() {
             />
           )}
 
+          {isSignup && isBusiness && (
+            <select
+              className="field"
+              name="topicId"
+              value={form.topicId}
+              onChange={updateField}
+              aria-label="Topic"
+            >
+              {topics.map((topic) => (
+                <option key={topic.id} value={topic.id}>
+                  {topic.name}
+                </option>
+              ))}
+            </select>
+          )}
+
           <input
             className="field"
             name="email"
@@ -141,6 +194,35 @@ export default function Login() {
             {isSignup ? 'Create account' : 'Log in'}
           </button>
         </form>
+
+        {!isSignup && (
+          <div className="card flex flex-col gap-fluid-2">
+            <h2 className="text-fluid-1 font-bold text-accent">Demo accounts</h2>
+            {demoAccounts.map((account) => (
+              <div
+                key={account.email}
+                className="flex flex-wrap items-center justify-between gap-2"
+              >
+                <div className="flex flex-col">
+                  <span className="font-bold">{account.label}</span>
+                  <span className="text-fluid-0">{account.email}</span>
+                  <span className="text-fluid-0">Password: {account.password}</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setAccountType(account.accountType)
+                    setForm({ ...emptyForm, email: account.email, password: account.password })
+                    setError('')
+                  }}
+                  className="nav-link cursor-pointer underline"
+                >
+                  Use this account
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
 
         <p>
           {isSignup ? 'Already have an account?' : 'New to Local Link?'}{' '}

@@ -23,8 +23,8 @@ export function AuthProvider({ children }) {
   }, [user])
 
   // accountType is either "customer" or "business".
-  const signIn = ({ name, email, accountType, businessName }) => {
-    setUser({ name, email, accountType, businessName })
+  const signIn = ({ name, email, accountType }) => {
+    setUser({ name, email, accountType })
   }
 
   const signOut = () => setUser(null)

@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
-import { products, topics } from '../data/products.js'
+import { topics } from '../data/products.js'
+import { listProducts, useBusinesses } from '../data/businessStore.js'
 import ProductCard from '../components/ProductCard.jsx'
 
 const testimonials = [
@@ -42,6 +43,9 @@ const testimonials = [
 ]
 
 export default function Home() {
+  const { businesses } = useBusinesses()
+  const products = listProducts(businesses)
+
   return (
     <>
       {/* Hero */}
@@ -81,7 +85,7 @@ export default function Home() {
             {topics.slice(0, 3).map((topic) => (
               <Link
                 key={topic.id}
-                to={`/marketplace?topic=${encodeURIComponent(topic.name)}`}
+                to={`/topics?topic=${topic.id}`}
                 className="flex flex-col items-center justify-between gap-fluid-2 text-center no-underline"
               >
                 <img src={topic.icon} alt="" width="125" height="125" />
