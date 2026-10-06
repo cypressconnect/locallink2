@@ -11,7 +11,8 @@ import { findTopic, seedBusinesses } from './products.js'
  * Both get swapped for a real API later, same as auth.jsx.
  */
 
-const BUSINESSES_KEY = 'locallink.businesses'
+// Bump the version when the seed data changes so old saved copies are dropped.
+const BUSINESSES_KEY = 'locallink.businesses.v2'
 const ACTIVE_KEY = 'locallink.activeBusiness'
 
 function read(key, fallback) {

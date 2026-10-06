@@ -243,7 +243,7 @@ function DescriptionCard({ business, onSave }) {
   )
 }
 
-const emptyProduct = { name: '', price: '', image: productImages[0] }
+const emptyProduct = { name: '', price: '', image: productImages[0].src }
 
 function ProductsSection({ business, onAdd }) {
   const [open, setOpen] = useState(false)
@@ -291,25 +291,26 @@ function ProductsSection({ business, onAdd }) {
           <fieldset className="flex flex-col gap-2">
             <legend className="mb-2">Picture</legend>
             <div className="grid grid-cols-3 gap-2 sm:grid-cols-6">
-              {productImages.map((image) => (
-                <label key={image} className="cursor-pointer">
+              {productImages.map(({ src, label }) => (
+                <label key={src} className="flex cursor-pointer flex-col gap-1 text-center text-fluid-0">
                   <input
                     type="radio"
                     name="image"
-                    value={image}
-                    checked={form.image === image}
+                    value={src}
+                    checked={form.image === src}
                     onChange={updateField}
                     className="sr-only"
                   />
                   <img
-                    src={image}
+                    src={src}
                     alt=""
                     width="790"
                     height="661"
                     className={`w-full border-4 ${
-                      form.image === image ? 'border-accent' : 'border-transparent'
+                      form.image === src ? 'border-accent' : 'border-transparent'
                     }`}
                   />
+                  {label}
                 </label>
               ))}
             </div>
