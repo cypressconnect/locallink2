@@ -68,8 +68,8 @@ export default function Home() {
           </div>
 
           <img
-            src="/assets/header.png"
-            alt="Students running their local businesses"
+            src="/assets/hero.jpg"
+            alt="People browsing stalls at an outdoor community market"
             width="960"
             height="720"
             className="w-full"
@@ -86,10 +86,19 @@ export default function Home() {
               <Link
                 key={topic.id}
                 to={`/topics?topic=${topic.id}`}
-                className="flex flex-col items-center justify-between gap-fluid-2 text-center no-underline"
+                className="group flex flex-col gap-fluid-2 text-center no-underline"
               >
-                <img src={topic.icon} alt="" width="125" height="125" />
-                <h3 className="text-fluid-1 font-bold text-accent">{topic.name}</h3>
+                <img
+                  src={topic.image}
+                  alt=""
+                  width="790"
+                  height="661"
+                  className="w-full transition-opacity duration-200 group-hover:opacity-90"
+                  loading="lazy"
+                />
+                <h3 className="text-fluid-1 font-bold text-accent group-hover:text-coral">
+                  {topic.name}
+                </h3>
               </Link>
             ))}
           </div>
