@@ -42,6 +42,36 @@ const testimonials = [
   },
 ]
 
+// Steps for the "How Local Link works" section under the hero.
+const guides = [
+  {
+    title: 'For customers',
+    steps: [
+      'Click Login/Signup, choose Customer and create an account (or use the demo customer account).',
+      'Open the Online Marketplace to see every product. Search by name, filter by topic, or tick "Only show verified businesses".',
+      'Or open Topics to browse by category and see every business in that topic.',
+      'Found something you like? Press Send Lead to pass your contact details to that business (coming soon).',
+    ],
+  },
+  {
+    title: 'For student businesses',
+    steps: [
+      'Click Login/Signup, choose Student Business and sign up with your school email, business name and topic.',
+      'You land on My Business, your business homepage. Edit your description there so customers know what you do.',
+      'Press Add a product, then give it a name, price, description, picture and topic. It appears in the marketplace straight away.',
+      'Delete products you no longer sell, add more businesses with "+ Add a business", and check your leads when they arrive.',
+    ],
+  },
+]
+
+// What each link in the navbar does.
+const navGuide = [
+  { label: 'Online Marketplace', text: 'Every product on the site, with search and filters.' },
+  { label: 'Topics', text: 'Businesses grouped by category.' },
+  { label: 'My Business', text: 'Only shown to business accounts. Manage your businesses and products.' },
+  { label: 'Login/Signup', text: 'Create an account or log in. You need one to see the marketplace and topics.' },
+]
+
 export default function Home() {
   const { businesses } = useBusinesses()
   const products = listProducts(businesses)
@@ -74,6 +104,42 @@ export default function Home() {
             height="720"
             className="w-full"
           />
+        </div>
+      </section>
+
+      {/* How to use the site */}
+      <section id="how-it-works" className="section">
+        <div className="shell flex flex-col gap-fluid-4">
+          <div className="flex flex-col gap-1 text-center">
+            <h2 className="section-heading text-accent">How Local Link works</h2>
+            <p>New here? This is how to get around the site.</p>
+          </div>
+
+          <div className="grid gap-fluid-2 md:grid-cols-2">
+            {guides.map((guide) => (
+              <div key={guide.title} className="card flex flex-col gap-fluid-2">
+                <h3 className="text-fluid-1 font-bold text-accent">{guide.title}</h3>
+                <ol className="flex list-decimal flex-col gap-2 pl-5">
+                  {guide.steps.map((step) => (
+                    <li key={step}>{step}</li>
+                  ))}
+                </ol>
+              </div>
+            ))}
+          </div>
+
+          <div className="card flex flex-col gap-fluid-2">
+            <h3 className="text-fluid-1 font-bold text-accent">Finding your way around</h3>
+            <p>Use the links at the top of every page. Click the Local Link logo to come back here.</p>
+            <dl className="grid gap-2 sm:grid-cols-2">
+              {navGuide.map((item) => (
+                <div key={item.label} className="flex flex-col">
+                  <dt className="font-bold">{item.label}</dt>
+                  <dd>{item.text}</dd>
+                </div>
+              ))}
+            </dl>
+          </div>
         </div>
       </section>
 
