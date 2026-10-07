@@ -16,7 +16,7 @@ import ProductCard, { VerifiedBadge } from '../components/ProductCard.jsx'
  */
 export default function BusinessHome() {
   const { user } = useAuth()
-  const { businesses, addBusiness, updateBusiness, addProduct } = useBusinesses()
+  const { businesses, addBusiness, updateBusiness, addProduct, removeProduct } = useBusinesses()
   const [activeId, setActiveId] = useState(() => getActiveBusinessId(user?.email))
   const [adding, setAdding] = useState(false)
 
@@ -85,6 +85,7 @@ export default function BusinessHome() {
               key={`products-${active.id}`}
               business={active}
               onAdd={(product) => addProduct(active.id, product)}
+              onRemove={(productId) => removeProduct(active.id, productId)}
             />
             <LeadsCard />
           </>
@@ -278,7 +279,7 @@ function emptyProduct(business) {
   }
 }
 
-function ProductsSection({ business, onAdd }) {
+function ProductsSection({ business, onAdd, onRemove }) {
   const [open, setOpen] = useState(false)
   const [form, setForm] = useState(() => emptyProduct(business))
   const [error, setError] = useState('')
@@ -304,6 +305,12 @@ function ProductsSection({ business, onAdd }) {
     setForm(emptyProduct(business))
     setError('')
     setOpen(false)
+  }
+
+  const handleRemove = (product) => {
+    if (window.confirm(`Delete "${product.name}"? It will be taken off the marketplace.`)) {
+      onRemove(product.id)
+    }
   }
 
   const handleSubmit = (event) => {
@@ -426,7 +433,12 @@ function ProductsSection({ business, onAdd }) {
       {products.length > 0 ? (
         <div className="grid gap-fluid-2 sm:grid-cols-2 md:grid-cols-3">
           {products.map((product) => (
-            <ProductCard key={product.id} product={product} showTopic />
+            <ProductCard
+              key={product.id}
+              product={product}
+              showTopic
+              onDelete={() => handleRemove(product)}
+            />
           ))}
         </div>
       ) : (

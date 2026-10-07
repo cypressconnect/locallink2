@@ -124,5 +124,18 @@ export function useBusinesses() {
     return saved
   }, [])
 
-  return { businesses, addBusiness, updateBusiness, addProduct }
+  const removeProduct = useCallback((businessId, productId) => {
+    setBusinesses(
+      save(getBusinesses().map((business) =>
+        business.id === businessId
+          ? {
+              ...business,
+              products: business.products.filter((product) => product.id !== productId),
+            }
+          : business,
+      )),
+    )
+  }, [])
+
+  return { businesses, addBusiness, updateBusiness, addProduct, removeProduct }
 }

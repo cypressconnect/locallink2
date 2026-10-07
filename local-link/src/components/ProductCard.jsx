@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom'
 
 // Shared by the homepage "Popular Products" grid and the marketplace.
-export default function ProductCard({ product, showLeadButton = false, showTopic = false }) {
+export default function ProductCard({ product, showLeadButton = false, showTopic = false, onDelete }) {
   return (
     <div className="flex flex-col gap-fluid-2">
       <img
@@ -28,6 +28,13 @@ export default function ProductCard({ product, showLeadButton = false, showTopic
         <Link to={`/lead/${product.businessId}`} className="btn min-w-0 w-full">
           Send Lead
         </Link>
+      )}
+
+      {/* Only passed on the business homepage, for the business's own products. */}
+      {onDelete && (
+        <button type="button" onClick={onDelete} className="nav-link cursor-pointer self-start underline">
+          Delete product
+        </button>
       )}
     </div>
   )
