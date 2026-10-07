@@ -1,5 +1,5 @@
 import { Routes, Route } from 'react-router-dom'
-import { AuthProvider } from './auth.jsx'
+import { AuthProvider, RequireAuth } from './auth.jsx'
 import Navbar from './components/Navbar.jsx'
 import Footer from './components/Footer.jsx'
 import Home from './pages/Home.jsx'
@@ -17,8 +17,8 @@ export default function App() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
-          <Route path="/marketplace" element={<Marketplace />} />
-          <Route path="/topics" element={<Topics />} />
+          <Route path="/marketplace" element={<RequireAuth><Marketplace /></RequireAuth>} />
+          <Route path="/topics" element={<RequireAuth><Topics /></RequireAuth>} />
           <Route path="/business" element={<BusinessHome />} />
           {/* Built in a later stage of the project. */}
           <Route path="/contact" element={<ComingSoon title="Contact" />} />

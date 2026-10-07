@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom'
 
 // Shared by the homepage "Popular Products" grid and the marketplace.
-export default function ProductCard({ product, showLeadButton = false }) {
+export default function ProductCard({ product, showLeadButton = false, showTopic = false }) {
   return (
     <div className="flex flex-col gap-fluid-2">
       <img
@@ -9,7 +9,7 @@ export default function ProductCard({ product, showLeadButton = false }) {
         alt={product.name}
         width="790"
         height="661"
-        className="w-full"
+        className="aspect-[790/661] w-full object-cover"
         loading="lazy"
       />
 
@@ -19,6 +19,8 @@ export default function ProductCard({ product, showLeadButton = false }) {
           {product.verified && <VerifiedBadge />}
         </div>
         <p>{product.business}</p>
+        {showTopic && product.topic && <p className="text-fluid-0 text-accent">{product.topic}</p>}
+        {product.description && <p className="text-fluid-0">{product.description}</p>}
         {product.price && <p className="text-ink/60">{product.price}</p>}
       </div>
 

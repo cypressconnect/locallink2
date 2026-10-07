@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useState } from 'react'
+import { Navigate, useLocation } from 'react-router-dom'
 
 /*
  * Front-end only account handling. Accounts are kept in localStorage so the
@@ -38,4 +39,16 @@ export function AuthProvider({ children }) {
 
 export function useAuth() {
   return useContext(AuthContext)
+}
+
+/* Wraps pages that need an account. Logged-out visitors are sent to the login
+ * page, which brings them back here once they sign in. */
+export function RequireAuth({ children }) {
+  const { user } = useAuth()
+  const location = useLocation()
+
+  if (!user) {
+    return <Navigate to="/login" replace state={{ from: location }} />
+  }
+  return children
 }

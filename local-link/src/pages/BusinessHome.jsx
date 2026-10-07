@@ -243,35 +243,95 @@ function DescriptionCard({ business, onSave }) {
   )
 }
 
-const emptyProduct = { name: '', price: '', image: productImages[0].src }
+// Uploaded photos are shrunk to this width so they fit in localStorage.
+const MAX_IMAGE_WIDTH = 800
+
+/* Reads an uploaded photo and returns it as a small JPEG data URL. */
+function shrinkImage(file) {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file)
+    const img = new Image()
+    img.onload = () => {
+      const scale = Math.min(1, MAX_IMAGE_WIDTH / img.width)
+      const canvas = document.createElement('canvas')
+      canvas.width = Math.round(img.width * scale)
+      canvas.height = Math.round(img.height * scale)
+      canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height)
+      URL.revokeObjectURL(url)
+      resolve(canvas.toDataURL('image/jpeg', 0.8))
+    }
+    img.onerror = () => {
+      URL.revokeObjectURL(url)
+      reject(new Error('Could not read that image.'))
+    }
+    img.src = url
+  })
+}
+
+function emptyProduct(business) {
+  return {
+    name: '',
+    price: '',
+    description: '',
+    topicId: business.topicId,
+    image: productImages[0].src,
+  }
+}
 
 function ProductsSection({ business, onAdd }) {
   const [open, setOpen] = useState(false)
-  const [form, setForm] = useState(emptyProduct)
+  const [form, setForm] = useState(() => emptyProduct(business))
+  const [error, setError] = useState('')
   const products = listProducts([business])
+  const uploaded = form.image.startsWith('data:')
 
   const updateField = (event) => {
     setForm({ ...form, [event.target.name]: event.target.value })
   }
 
+  const handleUpload = async (event) => {
+    const file = event.target.files[0]
+    if (!file) return
+    try {
+      setForm({ ...form, image: await shrinkImage(file) })
+      setError('')
+    } catch (err) {
+      setError(err.message)
+    }
+  }
+
+  const close = () => {
+    setForm(emptyProduct(business))
+    setError('')
+    setOpen(false)
+  }
+
   const handleSubmit = (event) => {
     event.preventDefault()
-    onAdd(form)
-    setForm(emptyProduct)
-    setOpen(false)
+    const saved = onAdd({ ...form, name: form.name.trim(), description: form.description.trim() })
+    if (!saved) {
+      setError('Added for now, but your browser ran out of space to save it. Try a smaller picture.')
+      return
+    }
+    close()
   }
 
   return (
     <div className="flex flex-col gap-fluid-2">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h2 className="section-heading">Products</h2>
-        <button type="button" onClick={() => setOpen(!open)} className="btn cursor-pointer">
+        <button
+          type="button"
+          onClick={() => (open ? close() : setOpen(true))}
+          className="btn cursor-pointer"
+        >
           {open ? 'Cancel' : 'Add a product'}
         </button>
       </div>
 
       {open && (
         <form onSubmit={handleSubmit} className="card flex flex-col gap-fluid-2">
+          <h3 className="text-fluid-1 font-bold text-accent">Add a product to the marketplace</h3>
           <input
             className="field bg-white"
             name="name"
@@ -288,8 +348,47 @@ function ProductsSection({ business, onAdd }) {
             placeholder="Price, e.g. $10 / hour"
             required
           />
+          <textarea
+            className="field bg-white"
+            name="description"
+            rows="3"
+            value={form.description}
+            onChange={updateField}
+            placeholder="Describe the product so customers know what they are getting"
+            required
+          />
+          <label className="flex flex-col gap-2">
+            <span>Topic</span>
+            <select
+              className="field bg-white"
+              name="topicId"
+              value={form.topicId}
+              onChange={updateField}
+            >
+              {topics.map((topic) => (
+                <option key={topic.id} value={topic.id}>
+                  {topic.name}
+                </option>
+              ))}
+            </select>
+          </label>
+
           <fieldset className="flex flex-col gap-2">
             <legend className="mb-2">Picture</legend>
+            <div className="flex flex-wrap items-center gap-fluid-2">
+              <label className="btn cursor-pointer">
+                Upload a photo
+                <input type="file" accept="image/*" onChange={handleUpload} className="sr-only" />
+              </label>
+              {uploaded && (
+                <img
+                  src={form.image}
+                  alt="Your uploaded product photo"
+                  className="h-24 w-auto border-4 border-accent"
+                />
+              )}
+            </div>
+            <p className="text-fluid-0 text-ink/60">Or pick one of ours:</p>
             <div className="grid grid-cols-3 gap-2 sm:grid-cols-6">
               {productImages.map(({ src, label }) => (
                 <label key={src} className="flex cursor-pointer flex-col gap-1 text-center text-fluid-0">
@@ -315,8 +414,11 @@ function ProductsSection({ business, onAdd }) {
               ))}
             </div>
           </fieldset>
+
+          {error && <p className="text-coral">{error}</p>}
+
           <button type="submit" className="btn-dark cursor-pointer self-start">
-            Save product
+            Add to marketplace
           </button>
         </form>
       )}
@@ -324,7 +426,7 @@ function ProductsSection({ business, onAdd }) {
       {products.length > 0 ? (
         <div className="grid gap-fluid-2 sm:grid-cols-2 md:grid-cols-3">
           {products.map((product) => (
-            <ProductCard key={product.id} product={product} />
+            <ProductCard key={product.id} product={product} showTopic />
           ))}
         </div>
       ) : (

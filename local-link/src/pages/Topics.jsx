@@ -1,7 +1,20 @@
 import { Link, useSearchParams } from 'react-router-dom'
 import { findTopic, topics } from '../data/products.js'
-import { useBusinesses } from '../data/businessStore.js'
+import { productTopicId, useBusinesses } from '../data/businessStore.js'
 import { VerifiedBadge } from '../components/ProductCard.jsx'
+
+/* A business shows up under its own topic and under any topic one of its
+ * products was filed in, with just the products from that topic listed. */
+function businessesInTopic(businesses, topicId) {
+  return businesses
+    .map((business) => ({
+      ...business,
+      products: business.products.filter(
+        (product) => productTopicId(business, product) === topicId,
+      ),
+    }))
+    .filter((business) => business.topicId === topicId || business.products.length > 0)
+}
 
 /*
  * Topics are categories of businesses. Picking one (?topic=baked-goods) lists
@@ -16,7 +29,7 @@ export default function Topics() {
     return (
       <TopicBusinesses
         topic={current}
-        businesses={businesses.filter((business) => business.topicId === current.id)}
+        businesses={businessesInTopic(businesses, current.id)}
         onBack={() => setParams({})}
       />
     )
@@ -33,7 +46,7 @@ export default function Topics() {
 
         <div className="grid gap-fluid-4 sm:grid-cols-2 md:grid-cols-3">
           {topics.map((topic) => {
-            const count = businesses.filter((business) => business.topicId === topic.id).length
+            const count = businessesInTopic(businesses, topic.id).length
             return (
               <Link
                 key={topic.id}
@@ -111,7 +124,12 @@ function BusinessCard({ business }) {
           <ul className="flex flex-col gap-1">
             {business.products.map((product) => (
               <li key={product.id} className="flex justify-between gap-2 border-t border-ink/10 pt-1">
-                <span>{product.name}</span>
+                <span className="flex flex-col">
+                  <span>{product.name}</span>
+                  {product.description && (
+                    <span className="text-fluid-0 text-ink/60">{product.description}</span>
+                  )}
+                </span>
                 <span className="text-ink/60">{product.price}</span>
               </li>
             ))}

@@ -28,8 +28,10 @@ function read(key, fallback) {
 function write(key, value) {
   try {
     localStorage.setItem(key, JSON.stringify(value))
+    return true
   } catch {
     // Ignore: the page still works for this visit without saving.
+    return false
   }
 }
 
@@ -71,6 +73,11 @@ export function setActiveBusinessId(email, businessId) {
   write(ACTIVE_KEY, { ...read(ACTIVE_KEY, {}), [email]: businessId })
 }
 
+/* A product picks its own topic; older products without one use the business's. */
+export function productTopicId(business, product) {
+  return product.topicId ?? business.topicId
+}
+
 /* Every product, flattened with the details of the business that sells it. */
 export function listProducts(businesses) {
   return businesses.flatMap((business) =>
@@ -78,7 +85,7 @@ export function listProducts(businesses) {
       ...product,
       businessId: business.id,
       business: business.name,
-      topic: findTopic(business.topicId)?.name ?? '',
+      topic: findTopic(productTopicId(business, product))?.name ?? '',
       verified: business.verified,
     })),
   )
@@ -102,17 +109,19 @@ export function useBusinesses() {
     )
   }, [])
 
+  // Returns false if the browser had no room to save it (e.g. a huge photo).
   const addProduct = useCallback((businessId, product) => {
-    setBusinesses(
-      save(getBusinesses().map((business) =>
-        business.id === businessId
-          ? {
-              ...business,
-              products: [...business.products, { ...product, id: String(Date.now()) }],
-            }
-          : business,
-      )),
+    const next = getBusinesses().map((business) =>
+      business.id === businessId
+        ? {
+            ...business,
+            products: [...business.products, { ...product, id: String(Date.now()) }],
+          }
+        : business,
     )
+    const saved = write(BUSINESSES_KEY, next)
+    setBusinesses(next)
+    return saved
   }, [])
 
   return { businesses, addBusiness, updateBusiness, addProduct }

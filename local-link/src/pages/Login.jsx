@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth.jsx'
 import { DEMO_BUSINESS_EMAIL, topics } from '../data/products.js'
 import { createBusiness } from '../data/businessStore.js'
@@ -35,6 +35,9 @@ const emptyForm = {
 export default function Login() {
   const { signIn } = useAuth()
   const navigate = useNavigate()
+  const location = useLocation()
+  // Set by RequireAuth when a logged-out visitor tried to open a members-only page.
+  const from = location.state?.from
 
   const [accountType, setAccountType] = useState('customer')
   const [mode, setMode] = useState('login') // "login" or "signup"
@@ -77,8 +80,13 @@ export default function Login() {
       createBusiness({ owner: form.email, name: form.businessName, topicId: form.topicId })
     }
 
-    // Each account type lands on its own homepage.
-    navigate(type === 'business' ? '/business' : '/marketplace')
+    // Go back to the page that asked for a login, otherwise each account type
+    // lands on its own homepage.
+    if (from) {
+      navigate(`${from.pathname}${from.search}`, { replace: true })
+    } else {
+      navigate(type === 'business' ? '/business' : '/marketplace')
+    }
   }
 
   return (
@@ -88,6 +96,9 @@ export default function Login() {
           <h1 className="section-heading text-accent">
             {isSignup ? 'Create an account' : 'Welcome back'}
           </h1>
+          {from && (
+            <p className="text-coral">Please log in or sign up to see that page.</p>
+          )}
           <p>
             {isBusiness
               ? 'Reach customers in your area and collect leads for your products.'

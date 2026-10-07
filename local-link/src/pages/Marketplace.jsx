@@ -30,7 +30,8 @@ export default function Marketplace() {
       if (!search) return true
       return (
         product.name.toLowerCase().includes(search) ||
-        product.business.toLowerCase().includes(search)
+        product.business.toLowerCase().includes(search) ||
+        (product.description ?? '').toLowerCase().includes(search)
       )
     })
   }, [businesses, query, topic, verifiedOnly])
