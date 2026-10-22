@@ -33,7 +33,7 @@ const emptyForm = {
 }
 
 export default function Login() {
-  const { signIn } = useAuth()
+  const { signIn, signUp } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
   // Set by RequireAuth when a logged-out visitor tried to open a members-only page.
@@ -43,6 +43,8 @@ export default function Login() {
   const [mode, setMode] = useState('login') // "login" or "signup"
   const [form, setForm] = useState(emptyForm)
   const [error, setError] = useState('')
+  const [notice, setNotice] = useState('')
+  const [busy, setBusy] = useState(false)
 
   const isBusiness = accountType === 'business'
   const isSignup = mode === 'signup'
@@ -51,7 +53,24 @@ export default function Login() {
     setForm({ ...form, [event.target.name]: event.target.value })
   }
 
-  const handleSubmit = (event) => {
+  /* Demo accounts are created the first time someone logs in with them, so a
+   * fresh Supabase project works without any manual setup. */
+  const logIn = async (email) => {
+    const demo = demoAccounts.find((account) => account.email === email)
+    try {
+      return await signIn({ email, password: form.password })
+    } catch (err) {
+      if (!demo || form.password !== demo.password) throw err
+      try {
+        return await signUp(demo)
+      } catch {
+        // Already created, so the login error is the one worth showing.
+        throw err
+      }
+    }
+  }
+
+  const handleSubmit = async (event) => {
     event.preventDefault()
 
     if (isSignup && form.password !== form.confirmPassword) {
@@ -59,33 +78,38 @@ export default function Login() {
       return
     }
 
-    const demo = demoAccounts.find((account) => account.email === form.email)
-    if (demo && !isSignup && form.password !== demo.password) {
-      setError('That is not the password for this demo account.')
-      return
-    }
-
-    // A demo email always signs in as its own account type, whichever tab is picked.
-    const type = demo?.accountType ?? accountType
-
+    const email = form.email.trim().toLowerCase()
+    setBusy(true)
     setError('')
-    signIn({
-      name: demo?.name || form.name || form.email,
-      email: form.email,
-      accountType: type,
-    })
+    setNotice('')
 
-    // A business signup starts with its first business already set up.
-    if (isSignup && isBusiness) {
-      createBusiness({ owner: form.email, name: form.businessName, topicId: form.topicId })
-    }
+    try {
+      const user = isSignup
+        ? await signUp({ name: form.name.trim(), email, password: form.password, accountType })
+        : await logIn(email)
 
-    // Go back to the page that asked for a login, otherwise each account type
-    // lands on its own homepage.
-    if (from) {
-      navigate(`${from.pathname}${from.search}`, { replace: true })
-    } else {
-      navigate(type === 'business' ? '/business' : '/marketplace')
+      if (!user) {
+        setNotice('Check your inbox and confirm your email, then log in.')
+        setMode('login')
+        return
+      }
+
+      // A business signup starts with its first business already set up.
+      if (isSignup && isBusiness) {
+        await createBusiness({ owner: email, name: form.businessName.trim(), topicId: form.topicId })
+      }
+
+      // Go back to the page that asked for a login, otherwise each account type
+      // lands on its own homepage.
+      if (from) {
+        navigate(`${from.pathname}${from.search}`, { replace: true })
+      } else {
+        navigate(user.accountType === 'business' ? '/business' : '/marketplace')
+      }
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setBusy(false)
     }
   }
 
@@ -192,6 +216,7 @@ export default function Login() {
           )}
 
           {error && <p className="text-coral">{error}</p>}
+          {notice && <p className="text-accent">{notice}</p>}
 
           {isSignup && isBusiness && (
             <p className="text-fluid-0 text-ink/60">
@@ -201,8 +226,8 @@ export default function Login() {
             </p>
           )}
 
-          <button type="submit" className="btn-dark">
-            {isSignup ? 'Create account' : 'Log in'}
+          <button type="submit" disabled={busy} className="btn-dark cursor-pointer disabled:opacity-60">
+            {busy ? 'Please wait…' : isSignup ? 'Create account' : 'Log in'}
           </button>
         </form>
 

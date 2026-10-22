@@ -50,7 +50,8 @@ const guides = [
       'Click Login/Signup, choose Customer and create an account (or use the demo customer account).',
       'Open the Online Marketplace to see every product. Search by name, filter by topic, or tick "Only show verified businesses".',
       'Or open Topics to browse by category and see every business in that topic.',
-      'Found something you like? Press Send Lead to pass your contact details to that business (coming soon).',
+      'Found something you like? Press Send Lead to send your name, email and phone to that business. It is free.',
+      'Open My Leads to see the leads you have sent. Each one says when the business has viewed it.',
     ],
   },
   {
@@ -59,7 +60,8 @@ const guides = [
       'Click Login/Signup, choose Student Business and sign up with your school email, business name and topic.',
       'You land on My Business, your business homepage. Edit your description there so customers know what you do.',
       'Press Add a product, then give it a name, price, description, picture and topic. It appears in the marketplace straight away.',
-      'Delete products you no longer sell, add more businesses with "+ Add a business", and check your leads when they arrive.',
+      'Delete products you no longer sell, and add more businesses with "+ Add a business".',
+      'Open Leads to see customers who sent you their details, then contact them yourself. They are told when you view their lead.',
     ],
   },
 ]
@@ -69,6 +71,8 @@ const navGuide = [
   { label: 'Online Marketplace', text: 'Every product on the site, with search and filters.' },
   { label: 'Topics', text: 'Businesses grouped by category.' },
   { label: 'My Business', text: 'Only shown to business accounts. Manage your businesses and products.' },
+  { label: 'Leads', text: 'Only shown to business accounts. Customers who sent your business their details.' },
+  { label: 'My Leads', text: 'Only shown to customers. Leads you have sent, and which ones have been viewed.' },
   { label: 'Login/Signup', text: 'Create an account or log in. You need one to see the marketplace and topics.' },
 ]
 

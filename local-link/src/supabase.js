@@ -1,0 +1,15 @@
+import { createClient } from '@supabase/supabase-js'
+
+/*
+ * The one Supabase client the whole site shares. The URL and publishable key
+ * come from .env.local (see README). The publishable key is safe in the
+ * browser: row level security in supabase/migrations decides what each
+ * account can read and change.
+ */
+
+const url = import.meta.env.VITE_SUPABASE_URL
+const key = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY
+
+export const isConfigured = Boolean(url && key)
+
+export const supabase = isConfigured ? createClient(url, key) : null

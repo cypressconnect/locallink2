@@ -1,4 +1,5 @@
 import { Link, useSearchParams } from 'react-router-dom'
+import { Loading } from '../auth.jsx'
 import { findTopic, topics } from '../data/products.js'
 import { productTopicId, useBusinesses } from '../data/businessStore.js'
 import { VerifiedBadge } from '../components/ProductCard.jsx'
@@ -22,8 +23,10 @@ function businessesInTopic(businesses, topicId) {
  */
 export default function Topics() {
   const [params, setParams] = useSearchParams()
-  const { businesses } = useBusinesses()
+  const { businesses, loading, error } = useBusinesses()
   const current = findTopic(params.get('topic'))
+
+  if (loading) return <Loading />
 
   if (current) {
     return (
@@ -43,6 +46,8 @@ export default function Topics() {
           <h1 className="section-heading text-accent">Browse by category</h1>
           <p>Pick a topic to see every student business in it and send a lead to the ones you like.</p>
         </div>
+
+        {error && <p className="text-coral">{error}</p>}
 
         <div className="grid gap-fluid-4 sm:grid-cols-2 md:grid-cols-3">
           {topics.map((topic) => {

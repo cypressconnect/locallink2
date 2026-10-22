@@ -9,7 +9,7 @@ export default function Marketplace() {
   const [params, setParams] = useSearchParams()
   const [query, setQuery] = useState('')
   const [verifiedOnly, setVerifiedOnly] = useState(false)
-  const { businesses } = useBusinesses()
+  const { businesses, loading, error } = useBusinesses()
 
   const topic = params.get('topic') ?? 'All'
 
@@ -96,11 +96,15 @@ export default function Marketplace() {
           </div>
         )}
 
+        {error && <p className="text-coral">{error}</p>}
+
         <p className="text-ink/60">
-          {results.length} {results.length === 1 ? 'product' : 'products'}
+          {loading
+            ? 'Loading products…'
+            : `${results.length} ${results.length === 1 ? 'product' : 'products'}`}
         </p>
 
-        {results.length > 0 ? (
+        {loading ? null : results.length > 0 ? (
           <div className="grid gap-fluid-2 sm:grid-cols-2 md:grid-cols-3">
             {results.map((product) => (
               <ProductCard key={product.id} product={product} showLeadButton />

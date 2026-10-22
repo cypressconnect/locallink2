@@ -1,76 +1,83 @@
-import { useCallback, useState } from 'react'
-import { findTopic, seedBusinesses } from './products.js'
+import { useCallback, useEffect, useState } from 'react'
+import { supabase } from '../supabase.js'
+import { findTopic } from './products.js'
 
 /*
- * Front-end only store for businesses and their products, kept in localStorage
- * so the site can be demoed without a server. Two things are saved:
+ * Businesses and their products, stored in Supabase (see supabase/migrations).
+ * Rows are turned into the same shape the pages have always used:
  *
- *   businesses - every business, each owned by one account email
- *   active     - which of its businesses each account is currently managing
+ *   { id, owner, name, topicId, description, verified, products: [...] }
  *
- * Both get swapped for a real API later, same as auth.jsx.
+ * Which of its businesses an account is managing is a per-browser preference,
+ * so that one stays in localStorage.
  */
 
-// Bump the version when the seed data changes so old saved copies are dropped.
-const BUSINESSES_KEY = 'locallink.businesses.v2'
 const ACTIVE_KEY = 'locallink.activeBusiness'
+const IMAGE_BUCKET = 'product-images'
 
-function read(key, fallback) {
+function readActive() {
   try {
-    const saved = localStorage.getItem(key)
-    return saved ? JSON.parse(saved) : fallback
+    return JSON.parse(localStorage.getItem(ACTIVE_KEY)) ?? {}
   } catch {
     // A corrupt or blocked store should not break the page.
-    return fallback
+    return {}
   }
-}
-
-function write(key, value) {
-  try {
-    localStorage.setItem(key, JSON.stringify(value))
-    return true
-  } catch {
-    // Ignore: the page still works for this visit without saving.
-    return false
-  }
-}
-
-export function getBusinesses() {
-  return read(BUSINESSES_KEY, seedBusinesses)
-}
-
-function save(businesses) {
-  write(BUSINESSES_KEY, businesses)
-  return businesses
-}
-
-function makeId(name) {
-  const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
-  return `${slug || 'business'}-${Date.now()}`
-}
-
-export function createBusiness({ owner, name, topicId, description = '' }) {
-  const business = {
-    id: makeId(name),
-    owner,
-    name,
-    topicId,
-    description,
-    // New businesses are reviewed before they get the Verified badge.
-    verified: false,
-    products: [],
-  }
-  save([...getBusinesses(), business])
-  setActiveBusinessId(owner, business.id)
-  return business
 }
 
 export function getActiveBusinessId(email) {
-  return read(ACTIVE_KEY, {})[email] ?? null
+  return readActive()[email] ?? null
 }
 
 export function setActiveBusinessId(email, businessId) {
-  write(ACTIVE_KEY, { ...read(ACTIVE_KEY, {}), [email]: businessId })
+  try {
+    localStorage.setItem(ACTIVE_KEY, JSON.stringify({ ...readActive(), [email]: businessId }))
+  } catch {
+    // Ignore: the switcher still works for this visit without saving.
+  }
+}
+
+function toProduct(row) {
+  return {
+    id: String(row.id),
+    name: row.name,
+    price: row.price,
+    description: row.description,
+    topicId: row.topic_id,
+    image: row.image,
+  }
+}
+
+function toBusiness(row) {
+  return {
+    id: row.id,
+    owner: row.owner_email,
+    name: row.name,
+    topicId: row.topic_id,
+    description: row.description,
+    verified: row.verified,
+    products: (row.products ?? []).map(toProduct),
+  }
+}
+
+export async function getBusinesses() {
+  const { data, error } = await supabase
+    .from('businesses')
+    .select('*, products(*)')
+    .order('created_at')
+    .order('created_at', { referencedTable: 'products' })
+  if (error) throw error
+  return data.map(toBusiness)
+}
+
+export async function createBusiness({ owner, name, topicId, description = '' }) {
+  const { data, error } = await supabase
+    .from('businesses')
+    .insert({ owner_email: owner, name, topic_id: topicId, description })
+    .select()
+    .single()
+  if (error) throw error
+  setActiveBusinessId(owner, data.id)
+  return toBusiness(data)
 }
 
 /* A product picks its own topic; older products without one use the business's. */
@@ -91,51 +98,94 @@ export function listProducts(businesses) {
   )
 }
 
-/* Reads the store once and re-reads it after every change on the page. */
+/* Uploads a product photo into the account's own folder and returns its URL. */
+async function uploadImage(file) {
+  const { data: auth } = await supabase.auth.getUser()
+  const path = `${auth.user.id}/${crypto.randomUUID()}.jpg`
+  const { error } = await supabase.storage
+    .from(IMAGE_BUCKET)
+    .upload(path, file, { contentType: 'image/jpeg' })
+  if (error) throw error
+  return supabase.storage.from(IMAGE_BUCKET).getPublicUrl(path).data.publicUrl
+}
+
+/* Removes an uploaded photo. Built-in pictures (/assets/...) are left alone. */
+async function deleteImage(url) {
+  const marker = `/${IMAGE_BUCKET}/`
+  const at = url.indexOf(marker)
+  if (at === -1) return
+  await supabase.storage.from(IMAGE_BUCKET).remove([url.slice(at + marker.length)])
+}
+
+/* Loads every business once, and reloads after each change made on the page.
+ * The change functions throw if Supabase refuses, so forms can show why. */
 export function useBusinesses() {
-  const [businesses, setBusinesses] = useState(getBusinesses)
+  const [businesses, setBusinesses] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
 
-  const addBusiness = useCallback((details) => {
-    const business = createBusiness(details)
-    setBusinesses(getBusinesses())
-    return business
+  const reload = useCallback(async () => {
+    try {
+      setBusinesses(await getBusinesses())
+      setError('')
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setLoading(false)
+    }
   }, [])
 
-  const updateBusiness = useCallback((id, changes) => {
-    setBusinesses(
-      save(getBusinesses().map((business) =>
-        business.id === id ? { ...business, ...changes } : business,
-      )),
-    )
-  }, [])
+  useEffect(() => {
+    reload()
+  }, [reload])
 
-  // Returns false if the browser had no room to save it (e.g. a huge photo).
-  const addProduct = useCallback((businessId, product) => {
-    const next = getBusinesses().map((business) =>
-      business.id === businessId
-        ? {
-            ...business,
-            products: [...business.products, { ...product, id: String(Date.now()) }],
-          }
-        : business,
-    )
-    const saved = write(BUSINESSES_KEY, next)
-    setBusinesses(next)
-    return saved
-  }, [])
+  const addBusiness = useCallback(
+    async (details) => {
+      const business = await createBusiness(details)
+      await reload()
+      return business
+    },
+    [reload],
+  )
 
-  const removeProduct = useCallback((businessId, productId) => {
-    setBusinesses(
-      save(getBusinesses().map((business) =>
-        business.id === businessId
-          ? {
-              ...business,
-              products: business.products.filter((product) => product.id !== productId),
-            }
-          : business,
-      )),
-    )
-  }, [])
+  const updateBusiness = useCallback(
+    async (id, changes) => {
+      const { error } = await supabase
+        .from('businesses')
+        .update({ name: changes.name, topic_id: changes.topicId, description: changes.description })
+        .eq('id', id)
+      if (error) throw error
+      await reload()
+    },
+    [reload],
+  )
 
-  return { businesses, addBusiness, updateBusiness, addProduct, removeProduct }
+  // `file` is an uploaded photo; without one, `image` is a built-in picture.
+  const addProduct = useCallback(
+    async (businessId, { name, price, description, topicId, image, file }) => {
+      const { error } = await supabase.from('products').insert({
+        business_id: businessId,
+        name,
+        price,
+        description,
+        topic_id: topicId,
+        image: file ? await uploadImage(file) : image,
+      })
+      if (error) throw error
+      await reload()
+    },
+    [reload],
+  )
+
+  const removeProduct = useCallback(
+    async (product) => {
+      const { error } = await supabase.from('products').delete().eq('id', product.id)
+      if (error) throw error
+      await deleteImage(product.image)
+      await reload()
+    },
+    [reload],
+  )
+
+  return { businesses, loading, error, addBusiness, updateBusiness, addProduct, removeProduct }
 }

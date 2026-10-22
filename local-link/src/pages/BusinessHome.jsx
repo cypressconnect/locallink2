@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, Navigate } from 'react-router-dom'
-import { useAuth } from '../auth.jsx'
+import { useAuth, Loading } from '../auth.jsx'
 import { findTopic, productImages, topics } from '../data/products.js'
 import {
   getActiveBusinessId,
@@ -16,12 +16,14 @@ import ProductCard, { VerifiedBadge } from '../components/ProductCard.jsx'
  */
 export default function BusinessHome() {
   const { user } = useAuth()
-  const { businesses, addBusiness, updateBusiness, addProduct, removeProduct } = useBusinesses()
+  const { businesses, loading, error, addBusiness, updateBusiness, addProduct, removeProduct } =
+    useBusinesses()
   const [activeId, setActiveId] = useState(() => getActiveBusinessId(user?.email))
   const [adding, setAdding] = useState(false)
 
   if (!user) return <Navigate to="/login" replace />
   if (user.accountType !== 'business') return <Navigate to="/marketplace" replace />
+  if (loading) return <Loading />
 
   const owned = businesses.filter((business) => business.owner === user.email)
   // Fall back to the first business if the saved one no longer exists.
@@ -33,8 +35,8 @@ export default function BusinessHome() {
     setAdding(false)
   }
 
-  const handleAdd = (details) => {
-    const business = addBusiness({ ...details, owner: user.email })
+  const handleAdd = async (details) => {
+    const business = await addBusiness({ ...details, owner: user.email })
     switchTo(business.id)
   }
 
@@ -57,6 +59,8 @@ export default function BusinessHome() {
             </div>
           )}
         </div>
+
+        {error && <p className="text-coral">{error}</p>}
 
         <BusinessSwitcher
           owned={owned}
@@ -85,7 +89,7 @@ export default function BusinessHome() {
               key={`products-${active.id}`}
               business={active}
               onAdd={(product) => addProduct(active.id, product)}
-              onRemove={(productId) => removeProduct(active.id, productId)}
+              onRemove={removeProduct}
             />
             <LeadsCard />
           </>
@@ -118,14 +122,22 @@ function BusinessSwitcher({ owned, activeId, adding, onSwitch, onAddClick }) {
 
 function NewBusinessForm({ onSubmit, onCancel }) {
   const [form, setForm] = useState({ name: '', topicId: topics[0].id, description: '' })
+  const [error, setError] = useState('')
+  const [busy, setBusy] = useState(false)
 
   const updateField = (event) => {
     setForm({ ...form, [event.target.name]: event.target.value })
   }
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault()
-    onSubmit(form)
+    setBusy(true)
+    try {
+      await onSubmit({ ...form, name: form.name.trim(), description: form.description.trim() })
+    } catch (err) {
+      setError(err.message)
+      setBusy(false)
+    }
   }
 
   return (
@@ -161,9 +173,10 @@ function NewBusinessForm({ onSubmit, onCancel }) {
         placeholder="What does your business offer?"
         required
       />
+      {error && <p className="text-coral">{error}</p>}
       <div className="flex flex-wrap gap-fluid-2">
-        <button type="submit" className="btn-dark cursor-pointer">
-          Create business
+        <button type="submit" disabled={busy} className="btn-dark cursor-pointer disabled:opacity-60">
+          {busy ? 'Creating…' : 'Create business'}
         </button>
         {onCancel && (
           <button type="button" onClick={onCancel} className="nav-link cursor-pointer underline">
@@ -179,6 +192,7 @@ function DescriptionCard({ business, onSave }) {
   const [shown, setShown] = useState(true)
   const [editing, setEditing] = useState(false)
   const [draft, setDraft] = useState(business.description)
+  const [error, setError] = useState('')
 
   const startEditing = () => {
     setDraft(business.description)
@@ -186,10 +200,15 @@ function DescriptionCard({ business, onSave }) {
     setEditing(true)
   }
 
-  const handleSave = (event) => {
+  const handleSave = async (event) => {
     event.preventDefault()
-    onSave(draft.trim())
-    setEditing(false)
+    try {
+      await onSave(draft.trim())
+      setError('')
+      setEditing(false)
+    } catch (err) {
+      setError(err.message)
+    }
   }
 
   return (
@@ -224,6 +243,7 @@ function DescriptionCard({ business, onSave }) {
             aria-label="Business description"
             required
           />
+          {error && <p className="text-coral">{error}</p>}
           <div className="flex flex-wrap gap-fluid-2">
             <button type="submit" className="btn-dark cursor-pointer">
               Save description
@@ -244,10 +264,10 @@ function DescriptionCard({ business, onSave }) {
   )
 }
 
-// Uploaded photos are shrunk to this width so they fit in localStorage.
+// Uploaded photos are shrunk to this width before they go to Supabase Storage.
 const MAX_IMAGE_WIDTH = 800
 
-/* Reads an uploaded photo and returns it as a small JPEG data URL. */
+/* Reads an uploaded photo and returns it as a smaller JPEG file. */
 function shrinkImage(file) {
   return new Promise((resolve, reject) => {
     const url = URL.createObjectURL(file)
@@ -259,7 +279,11 @@ function shrinkImage(file) {
       canvas.height = Math.round(img.height * scale)
       canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height)
       URL.revokeObjectURL(url)
-      resolve(canvas.toDataURL('image/jpeg', 0.8))
+      canvas.toBlob(
+        (blob) => (blob ? resolve(blob) : reject(new Error('Could not read that image.'))),
+        'image/jpeg',
+        0.8,
+      )
     }
     img.onerror = () => {
       URL.revokeObjectURL(url)
@@ -276,6 +300,8 @@ function emptyProduct(business) {
     description: '',
     topicId: business.topicId,
     image: productImages[0].src,
+    // The uploaded photo, if any. `image` then holds a preview of it.
+    file: null,
   }
 }
 
@@ -283,8 +309,9 @@ function ProductsSection({ business, onAdd, onRemove }) {
   const [open, setOpen] = useState(false)
   const [form, setForm] = useState(() => emptyProduct(business))
   const [error, setError] = useState('')
+  const [busy, setBusy] = useState(false)
   const products = listProducts([business])
-  const uploaded = form.image.startsWith('data:')
+  const uploaded = Boolean(form.file)
 
   const updateField = (event) => {
     setForm({ ...form, [event.target.name]: event.target.value })
@@ -294,7 +321,9 @@ function ProductsSection({ business, onAdd, onRemove }) {
     const file = event.target.files[0]
     if (!file) return
     try {
-      setForm({ ...form, image: await shrinkImage(file) })
+      const shrunk = await shrinkImage(file)
+      if (form.file) URL.revokeObjectURL(form.image)
+      setForm({ ...form, file: shrunk, image: URL.createObjectURL(shrunk) })
       setError('')
     } catch (err) {
       setError(err.message)
@@ -302,6 +331,7 @@ function ProductsSection({ business, onAdd, onRemove }) {
   }
 
   const close = () => {
+    if (form.file) URL.revokeObjectURL(form.image)
     setForm(emptyProduct(business))
     setError('')
     setOpen(false)
@@ -309,18 +339,27 @@ function ProductsSection({ business, onAdd, onRemove }) {
 
   const handleRemove = (product) => {
     if (window.confirm(`Delete "${product.name}"? It will be taken off the marketplace.`)) {
-      onRemove(product.id)
+      onRemove(product).catch((err) => setError(err.message))
     }
   }
 
-  const handleSubmit = (event) => {
+  // Picking a built-in picture drops any uploaded photo.
+  const pickImage = (event) => {
+    if (form.file) URL.revokeObjectURL(form.image)
+    setForm({ ...form, image: event.target.value, file: null })
+  }
+
+  const handleSubmit = async (event) => {
     event.preventDefault()
-    const saved = onAdd({ ...form, name: form.name.trim(), description: form.description.trim() })
-    if (!saved) {
-      setError('Added for now, but your browser ran out of space to save it. Try a smaller picture.')
-      return
+    setBusy(true)
+    try {
+      await onAdd({ ...form, name: form.name.trim(), description: form.description.trim() })
+      close()
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setBusy(false)
     }
-    close()
   }
 
   return (
@@ -404,7 +443,7 @@ function ProductsSection({ business, onAdd, onRemove }) {
                     name="image"
                     value={src}
                     checked={form.image === src}
-                    onChange={updateField}
+                    onChange={pickImage}
                     className="sr-only"
                   />
                   <img
@@ -424,11 +463,13 @@ function ProductsSection({ business, onAdd, onRemove }) {
 
           {error && <p className="text-coral">{error}</p>}
 
-          <button type="submit" className="btn-dark cursor-pointer self-start">
-            Add to marketplace
+          <button type="submit" disabled={busy} className="btn-dark cursor-pointer self-start disabled:opacity-60">
+            {busy ? 'Adding…' : 'Add to marketplace'}
           </button>
         </form>
       )}
+
+      {!open && error && <p className="text-coral">{error}</p>}
 
       {products.length > 0 ? (
         <div className="grid gap-fluid-2 sm:grid-cols-2 md:grid-cols-3">
@@ -453,7 +494,7 @@ function LeadsCard() {
     <div className="card flex flex-col gap-fluid-2 sm:flex-row sm:items-center sm:justify-between">
       <div className="flex flex-col gap-1">
         <h2 className="text-fluid-1 font-bold text-accent">Leads</h2>
-        <p>Customers who send you a lead will be listed here. This part is still in progress.</p>
+        <p>See the customers who sent this business their details, then contact them yourself.</p>
       </div>
       <Link to="/leads" className="btn-dark shrink-0">
         View leads

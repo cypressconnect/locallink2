@@ -11,6 +11,18 @@ npm install
 npm run dev
 ```
 
+The site needs a Supabase project. Put its URL and publishable key in
+`.env.local` (gitignored):
+
+```
+VITE_SUPABASE_URL=https://<project-ref>.supabase.co
+VITE_SUPABASE_PUBLISHABLE_KEY=sb_publishable_...
+```
+
+The database schema, security rules and seed businesses are in
+`supabase/migrations`. Apply them with `supabase link --project-ref <ref>` and
+then `supabase db push`.
+
 ## What is built so far
 
 | Page | Route | Notes |
@@ -18,33 +30,46 @@ npm run dev
 | Homepage | `/` | Hero, popular topics, popular products, testimonials, contact form |
 | Login / Signup | `/login` | Toggles between customer and student business, and between log in and sign up |
 | Online Marketplace | `/marketplace` | Search, topic filters, verified-only filter, product grid |
+| Topics | `/topics` | Businesses grouped by category |
+| My Business | `/business` | Business homepage: businesses, description, products |
+| Send a Lead | `/lead/:businessId` | Customer sends their name, email and phone to a business (free) |
+| Leads | `/leads` | Business sees its leads; opening them marks them viewed |
+| My Leads | `/my-leads` | Customer sees their leads and a message once each is viewed |
 
 ## Still to build
 
-Admin system, contact page, lead submission, and the topic page. These routes
-currently render the `ComingSoon` placeholder so navigation never breaks.
+Admin system (including verifying businesses), the contact page, and paid
+leads. Unbuilt routes render the `ComingSoon` placeholder so navigation never
+breaks.
 
 ## Project layout
 
 ```
 src/
-  auth.jsx              account state, saved to localStorage
+  supabase.js           the shared Supabase client
+  auth.jsx              Supabase Auth: name and account type live in user metadata
   index.css             Tailwind theme tokens and shared component classes
   components/
-    Navbar.jsx
+    Navbar.jsx          shows customers how many of their leads were viewed
     Footer.jsx          includes the contact form
     ProductCard.jsx     shared by the homepage and the marketplace
   data/
-    products.js         products and topics
+    products.js         topics and built-in product pictures
+    businessStore.js    businesses and products (Supabase), photo uploads
+    leadStore.js        sending, listing and marking leads (Supabase)
   pages/
-    Home.jsx
-    Login.jsx
-    Marketplace.jsx
-    ComingSoon.jsx
+    Home.jsx  Login.jsx  Marketplace.jsx  Topics.jsx  BusinessHome.jsx
+    SendLead.jsx  Leads.jsx  MyLeads.jsx  ComingSoon.jsx
+supabase/migrations/    tables, row level security, storage bucket, seed data
 ```
 
 ## Notes
 
-Accounts are stored in the browser with `localStorage`, so there is no server
-yet and no real password checking. Swap `src/auth.jsx` for a real API when the
-backend exists.
+- Row level security does the access control: anyone can read businesses and
+  products, only owners change their own, customers only see their own leads,
+  and businesses only see leads sent to them. Nobody can set `verified` from
+  the site.
+- A lead's `viewed_at` is set by the `mark_leads_viewed` function when the
+  business opens its leads page; the customer's message is cleared by
+  `read_lead_view_messages`.
+- The demo accounts are created the first time someone logs in with them.

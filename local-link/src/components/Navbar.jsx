@@ -1,8 +1,11 @@
-import { Link, NavLink } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { Link, NavLink, useLocation } from 'react-router-dom'
 import { useAuth } from '../auth.jsx'
+import { countUnreadViews, LEAD_MESSAGES_READ } from '../data/leadStore.js'
 
 export default function Navbar() {
   const { user, signOut } = useAuth()
+  const unread = useUnreadViews(user)
 
   return (
     <nav className="shell flex flex-wrap items-center justify-between gap-fluid-2 py-fluid-2">
@@ -23,8 +26,27 @@ export default function Navbar() {
         </NavLink>
 
         {user?.accountType === 'business' && (
-          <NavLink to="/business" className="nav-link">
-            My Business
+          <>
+            <NavLink to="/business" className="nav-link">
+              My Business
+            </NavLink>
+            <NavLink to="/leads" className="nav-link">
+              Leads
+            </NavLink>
+          </>
+        )}
+
+        {user?.accountType === 'customer' && (
+          <NavLink to="/my-leads" className="nav-link">
+            My Leads
+            {unread > 0 && (
+              <span
+                title={`${unread} ${unread === 1 ? 'business has' : 'businesses have'} viewed your lead`}
+                className="ml-2 inline-block bg-coral px-2 text-[12px] font-bold text-white"
+              >
+                {unread}
+              </span>
+            )}
           </NavLink>
         )}
 
@@ -43,4 +65,35 @@ export default function Navbar() {
       </div>
     </nav>
   )
+}
+
+/* How many of a customer's leads have been viewed since they last checked.
+ * Re-checked on every page change, and cleared once My Leads marks them read. */
+function useUnreadViews(user) {
+  const [unread, setUnread] = useState(0)
+  const { pathname } = useLocation()
+  const customerId = user?.accountType === 'customer' ? user.id : null
+
+  useEffect(() => {
+    if (!customerId) {
+      setUnread(0)
+      return
+    }
+    let cancelled = false
+    countUnreadViews(customerId)
+      .then((count) => !cancelled && setUnread(count))
+      // The badge is a nice-to-have; a failed check just hides it.
+      .catch(() => !cancelled && setUnread(0))
+    return () => {
+      cancelled = true
+    }
+  }, [customerId, pathname])
+
+  useEffect(() => {
+    const clear = () => setUnread(0)
+    window.addEventListener(LEAD_MESSAGES_READ, clear)
+    return () => window.removeEventListener(LEAD_MESSAGES_READ, clear)
+  }, [])
+
+  return unread
 }
