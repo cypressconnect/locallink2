@@ -11,7 +11,7 @@ npm install
 npm run dev
 ```
 
-The site needs a Supabase project. Put its URL and publishable key in
+The site uses the Supabase project in `.env`. To use another one, put its URL and publishable key in
 `.env.local` (gitignored):
 
 ```
