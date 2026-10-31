@@ -8,6 +8,9 @@ import { findTopic } from './products.js'
  *
  *   { id, owner, name, topicId, description, verified, products: [...] }
  *
+ * Each product carries its review summary (rating, reviewCount); the reviews
+ * themselves are loaded on the product page (see reviewStore.js).
+ *
  * Which of its businesses an account is managing is a per-browser preference,
  * so that one stays in localStorage.
  */
@@ -44,6 +47,16 @@ function toProduct(row) {
     description: row.description,
     topicId: row.topic_id,
     image: row.image,
+    ...summarizeReviews(row.reviews),
+  }
+}
+
+/* Average stars (to one decimal) and how many reviews, from rows with a rating. */
+export function summarizeReviews(reviews = []) {
+  const total = reviews.reduce((sum, review) => sum + review.rating, 0)
+  return {
+    rating: reviews.length ? Math.round((total / reviews.length) * 10) / 10 : null,
+    reviewCount: reviews.length,
   }
 }
 
@@ -62,7 +75,7 @@ function toBusiness(row) {
 export async function getBusinesses() {
   const { data, error } = await supabase
     .from('businesses')
-    .select('*, products(*)')
+    .select('*, products(*, reviews(rating))')
     .order('created_at')
     .order('created_at', { referencedTable: 'products' })
   if (error) throw error

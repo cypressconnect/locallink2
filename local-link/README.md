@@ -32,6 +32,7 @@ then `supabase db push`.
 | Online Marketplace | `/marketplace` | Search, topic filters, verified-only filter, product grid |
 | Topics | `/topics` | Businesses grouped by category |
 | My Business | `/business` | Business homepage: businesses, description, products |
+| Product | `/product/:productId` | Product details and reviews; customers post, edit and delete their review |
 | Send a Lead | `/lead/:businessId` | Customer sends their name, email and phone to a business (free) |
 | Leads | `/leads` | Business sees its leads; opening them marks them viewed |
 | My Leads | `/my-leads` | Customer sees their leads and a message once each is viewed |
@@ -57,9 +58,10 @@ src/
     products.js         topics and built-in product pictures
     businessStore.js    businesses and products (Supabase), photo uploads
     leadStore.js        sending, listing and marking leads (Supabase)
+    reviewStore.js      loading, posting, editing and deleting reviews (Supabase)
   pages/
     Home.jsx  Login.jsx  Marketplace.jsx  Topics.jsx  BusinessHome.jsx
-    SendLead.jsx  Leads.jsx  MyLeads.jsx  ComingSoon.jsx
+    Product.jsx  SendLead.jsx  Leads.jsx  MyLeads.jsx  ComingSoon.jsx
 supabase/migrations/    tables, row level security, storage bucket, seed data
 ```
 
@@ -72,4 +74,8 @@ supabase/migrations/    tables, row level security, storage bucket, seed data
 - A lead's `viewed_at` is set by the `mark_leads_viewed` function when the
   business opens its leads page; the customer's message is cleared by
   `read_lead_view_messages`.
+- Reviews: one per customer per product, 1 to 5 stars plus an optional
+  comment. Only customer accounts can post, never on their own business's
+  products, and only the author can edit or delete a review. Product cards show
+  the average rating.
 - The demo accounts are created the first time someone logs in with them.

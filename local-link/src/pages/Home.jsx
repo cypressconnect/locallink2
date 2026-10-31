@@ -50,7 +50,9 @@ const guides = [
       'Click Login/Signup, choose Customer and create an account (or use the demo customer account).',
       'Open the Online Marketplace to see every product. Search by name, filter by topic, or tick "Only show verified businesses".',
       'Or open Topics to browse by category and see every business in that topic.',
+      'Click a product\'s picture or name to open its page and read what other customers thought of it.',
       'Found something you like? Press Send Lead to send your name, email and phone to that business. It is free.',
+      'Bought it already? Leave a review on the product page: pick 1 to 5 stars and add a comment. You can edit or delete it later.',
       'Open My Leads to see the leads you have sent. Each one says when the business has viewed it.',
     ],
   },
@@ -68,7 +70,7 @@ const guides = [
 
 // What each link in the navbar does.
 const navGuide = [
-  { label: 'Online Marketplace', text: 'Every product on the site, with search and filters.' },
+  { label: 'Online Marketplace', text: 'Every product on the site, with search and filters. Click a product to see its reviews.' },
   { label: 'Topics', text: 'Businesses grouped by category.' },
   { label: 'My Business', text: 'Only shown to business accounts. Manage your businesses and products.' },
   { label: 'Leads', text: 'Only shown to business accounts. Customers who sent your business their details.' },

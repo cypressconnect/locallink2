@@ -11,6 +11,7 @@ import ComingSoon from './pages/ComingSoon.jsx'
 import SendLead from './pages/SendLead.jsx'
 import Leads from './pages/Leads.jsx'
 import MyLeads from './pages/MyLeads.jsx'
+import Product from './pages/Product.jsx'
 import { isConfigured } from './supabase.js'
 
 export default function App() {
@@ -33,6 +34,7 @@ export default function App() {
           <Route path="/marketplace" element={<RequireAuth><Marketplace /></RequireAuth>} />
           <Route path="/topics" element={<RequireAuth><Topics /></RequireAuth>} />
           <Route path="/business" element={<RequireAuth><BusinessHome /></RequireAuth>} />
+          <Route path="/product/:productId" element={<RequireAuth><Product /></RequireAuth>} />
           <Route path="/lead/:businessId" element={<RequireAuth><SendLead /></RequireAuth>} />
           <Route path="/leads" element={<RequireAuth><Leads /></RequireAuth>} />
           <Route path="/my-leads" element={<RequireAuth><MyLeads /></RequireAuth>} />
