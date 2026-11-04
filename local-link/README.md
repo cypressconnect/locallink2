@@ -31,7 +31,7 @@ then `supabase db push`.
 | Login / Signup | `/login` | Toggles between customer and student business, and between log in and sign up |
 | Online Marketplace | `/marketplace` | Search, topic filters, verified-only filter, product grid |
 | Topics | `/topics` | Businesses grouped by category |
-| My Business | `/business` | Business homepage: businesses, description, products |
+| My Business | `/business` | Business homepage: businesses, description, product search, photo uploads |
 | Product | `/product/:productId` | Product details and reviews; customers post, edit and delete their review |
 | Send a Lead | `/lead/:businessId` | Customer sends their name, email and phone to a business (free) |
 | Leads | `/leads` | Business sees its leads; opening them marks them viewed |

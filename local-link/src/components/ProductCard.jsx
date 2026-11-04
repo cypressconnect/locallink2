@@ -1,7 +1,14 @@
 import { Link } from 'react-router-dom'
 
 // Shared by the homepage "Popular Products" grid and the marketplace.
-export default function ProductCard({ product, showLeadButton = false, showTopic = false, onDelete }) {
+export default function ProductCard({
+  product,
+  showLeadButton = false,
+  showTopic = false,
+  onDelete,
+  onChangePhoto,
+  changingPhoto = false,
+}) {
   return (
     <div className="flex flex-col gap-fluid-2">
       {/* The picture and name open the product page, where its reviews are. */}
@@ -35,10 +42,31 @@ export default function ProductCard({ product, showLeadButton = false, showTopic
       )}
 
       {/* Only passed on the business homepage, for the business's own products. */}
-      {onDelete && (
-        <button type="button" onClick={onDelete} className="nav-link cursor-pointer self-start underline">
-          Delete product
-        </button>
+      {(onChangePhoto || onDelete) && (
+        <div className="flex flex-wrap gap-fluid-2">
+          {onChangePhoto && (
+            <label className={`nav-link cursor-pointer underline ${changingPhoto ? 'opacity-60' : ''}`}>
+              {changingPhoto ? 'Uploading…' : 'Change photo'}
+              <input
+                type="file"
+                accept="image/*"
+                disabled={changingPhoto}
+                onChange={(event) => {
+                  const file = event.target.files[0]
+                  // Cleared so picking the same file again still fires.
+                  event.target.value = ''
+                  if (file) onChangePhoto(file)
+                }}
+                className="sr-only"
+              />
+            </label>
+          )}
+          {onDelete && (
+            <button type="button" onClick={onDelete} className="nav-link cursor-pointer underline">
+              Delete product
+            </button>
+          )}
+        </div>
       )}
     </div>
   )

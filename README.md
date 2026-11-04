@@ -72,6 +72,8 @@ Here are some things to try:
   - Check **My Leads**.
 - **As a business:**
   - Open **My Business** to edit your description and add or delete products.
+  - Search your products, and press **Change photo** on a product to upload
+    a new picture.
   - Open **Leads** to see customers who contacted you.
 
 

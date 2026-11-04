@@ -16,8 +16,16 @@ import ProductCard, { VerifiedBadge } from '../components/ProductCard.jsx'
  */
 export default function BusinessHome() {
   const { user } = useAuth()
-  const { businesses, loading, error, addBusiness, updateBusiness, addProduct, removeProduct } =
-    useBusinesses()
+  const {
+    businesses,
+    loading,
+    error,
+    addBusiness,
+    updateBusiness,
+    addProduct,
+    removeProduct,
+    changeProductImage,
+  } = useBusinesses()
   const [activeId, setActiveId] = useState(() => getActiveBusinessId(user?.email))
   const [adding, setAdding] = useState(false)
 
@@ -90,6 +98,7 @@ export default function BusinessHome() {
               business={active}
               onAdd={(product) => addProduct(active.id, product)}
               onRemove={removeProduct}
+              onChangePhoto={changeProductImage}
             />
             <LeadsCard />
           </>
@@ -305,12 +314,27 @@ function emptyProduct(business) {
   }
 }
 
-function ProductsSection({ business, onAdd, onRemove }) {
+/* Products whose name, description, price or topic contain the search. */
+function searchProducts(products, query) {
+  const search = query.trim().toLowerCase()
+  if (!search) return products
+  return products.filter((product) =>
+    [product.name, product.description, product.price, product.topic].some((text) =>
+      (text ?? '').toLowerCase().includes(search),
+    ),
+  )
+}
+
+function ProductsSection({ business, onAdd, onRemove, onChangePhoto }) {
   const [open, setOpen] = useState(false)
   const [form, setForm] = useState(() => emptyProduct(business))
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
+  const [query, setQuery] = useState('')
+  // Id of the product whose new photo is uploading.
+  const [changingId, setChangingId] = useState(null)
   const products = listProducts([business])
+  const shown = searchProducts(products, query)
   const uploaded = Boolean(form.file)
 
   const updateField = (event) => {
@@ -340,6 +364,18 @@ function ProductsSection({ business, onAdd, onRemove }) {
   const handleRemove = (product) => {
     if (window.confirm(`Delete "${product.name}"? It will be taken off the marketplace.`)) {
       onRemove(product).catch((err) => setError(err.message))
+    }
+  }
+
+  const handleChangePhoto = async (product, file) => {
+    setChangingId(product.id)
+    setError('')
+    try {
+      await onChangePhoto(product, await shrinkImage(file))
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setChangingId(null)
     }
   }
 
@@ -472,16 +508,37 @@ function ProductsSection({ business, onAdd, onRemove }) {
       {!open && error && <p className="text-coral">{error}</p>}
 
       {products.length > 0 ? (
-        <div className="grid gap-fluid-2 sm:grid-cols-2 md:grid-cols-3">
-          {products.map((product) => (
-            <ProductCard
-              key={product.id}
-              product={product}
-              showTopic
-              onDelete={() => handleRemove(product)}
-            />
-          ))}
-        </div>
+        <>
+          <input
+            className="field"
+            type="search"
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder="Search your products"
+            aria-label="Search your products"
+          />
+          <p className="text-ink/60">
+            {query.trim()
+              ? `${shown.length} of ${products.length} ${products.length === 1 ? 'product' : 'products'}`
+              : `${products.length} ${products.length === 1 ? 'product' : 'products'}`}
+          </p>
+          {shown.length > 0 ? (
+            <div className="grid gap-fluid-2 sm:grid-cols-2 md:grid-cols-3">
+              {shown.map((product) => (
+                <ProductCard
+                  key={product.id}
+                  product={product}
+                  showTopic
+                  onChangePhoto={(file) => handleChangePhoto(product, file)}
+                  changingPhoto={changingId === product.id}
+                  onDelete={() => handleRemove(product)}
+                />
+              ))}
+            </div>
+          ) : (
+            <p>No products match that search.</p>
+          )}
+        </>
       ) : (
         <p>No products yet. Add one and it shows up in the marketplace straight away.</p>
       )}

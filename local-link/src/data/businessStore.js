@@ -200,5 +200,29 @@ export function useBusinesses() {
     [reload],
   )
 
-  return { businesses, loading, error, addBusiness, updateBusiness, addProduct, removeProduct }
+  // Swaps a product's picture for an uploaded photo, then removes the old one.
+  const changeProductImage = useCallback(
+    async (product, file) => {
+      const image = await uploadImage(file)
+      const { error } = await supabase.from('products').update({ image }).eq('id', product.id)
+      if (error) {
+        await deleteImage(image)
+        throw error
+      }
+      await deleteImage(product.image)
+      await reload()
+    },
+    [reload],
+  )
+
+  return {
+    businesses,
+    loading,
+    error,
+    addBusiness,
+    updateBusiness,
+    addProduct,
+    removeProduct,
+    changeProductImage,
+  }
 }
